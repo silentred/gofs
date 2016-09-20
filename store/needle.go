@@ -1,5 +1,7 @@
 package store
 
+import "hash/crc32"
+
 const (
 	hMagicLen   = 4
 	fMagicLen   = 4
@@ -20,6 +22,11 @@ var (
 	footerMagic = [4]byte{0x02, 0x01, 0x01, 0x04}
 
 	paddings = make([][]byte, 8)
+
+	flagNormal = byte(0)
+	flagDel    = byte(1)
+
+	crc32q = crc32.MakeTable(0xD5828281)
 )
 
 func init() {
@@ -29,7 +36,6 @@ func init() {
 }
 
 type Needle struct {
-	// total data
 	Header   [4]byte
 	ID       uint64
 	Flag     byte
@@ -47,15 +53,27 @@ func getNeedlePadding(dataSize uint32) []byte {
 	return paddings[i]
 }
 
+func doChecksum(data []byte) uint32 {
+	return crc32.Checksum(data, crc32q)
+}
+
 func (n *Needle) GetTotalSize() int {
 	return totalHeaderLen + int(n.Size) + totalFooterLen + len(n.Padding)
 }
 
 func NewNeedle(data []byte) *Needle {
-	dataSize := len(data)
+	dataSize := uint32(len(data))
 	padding := getNeedlePadding(dataSize)
 	n := &Needle{
-		Header: headerMagic,
-		ID:     1,
+		Header:   headerMagic,
+		ID:       1,
+		Flag:     flagNormal,
+		Size:     dataSize,
+		Data:     data,
+		Footer:   footerMagic,
+		Checksum: doChecksum(data),
+		Padding:  padding,
 	}
+
+	return n
 }
