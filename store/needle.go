@@ -1,6 +1,12 @@
 package store
 
-import "hash/crc32"
+import (
+	"bytes"
+	"encoding/binary"
+	"encoding/json"
+	"fmt"
+	"hash/crc32"
+)
 
 const (
 	hMagicLen   = 4
@@ -18,8 +24,8 @@ const (
 )
 
 var (
-	headerMagic = [4]byte{0x01, 0x01, 0x01, 0x01}
-	footerMagic = [4]byte{0x02, 0x01, 0x01, 0x04}
+	headerMagic = []byte{0x01, 0x09, 0x08, 0x09}
+	footerMagic = []byte{0x01, 0x01, 0x01, 0x04}
 
 	paddings = make([][]byte, 8)
 
@@ -36,12 +42,12 @@ func init() {
 }
 
 type Needle struct {
-	Header   [4]byte
+	Header   []byte
 	ID       uint64
 	Flag     byte
 	Size     uint32
 	Data     []byte
-	Footer   [4]byte
+	Footer   []byte
 	Checksum uint32
 	Padding  []byte
 }
@@ -57,16 +63,12 @@ func doChecksum(data []byte) uint32 {
 	return crc32.Checksum(data, crc32q)
 }
 
-func (n *Needle) GetTotalSize() int {
-	return totalHeaderLen + int(n.Size) + totalFooterLen + len(n.Padding)
-}
-
-func NewNeedle(data []byte) *Needle {
+func NewNeedle(data []byte, id uint64) *Needle {
 	dataSize := uint32(len(data))
 	padding := getNeedlePadding(dataSize)
 	n := &Needle{
 		Header:   headerMagic,
-		ID:       1,
+		ID:       id,
 		Flag:     flagNormal,
 		Size:     dataSize,
 		Data:     data,
@@ -76,4 +78,75 @@ func NewNeedle(data []byte) *Needle {
 	}
 
 	return n
+}
+
+func (n *Needle) GetTotalSize() int {
+	return totalHeaderLen + int(n.Size) + totalFooterLen + len(n.Padding)
+}
+
+// ToBytes converts needle to []byte
+func (n *Needle) Bytes() []byte {
+	b := make([]byte, 0, n.GetTotalSize())
+	buf := bytes.NewBuffer(b)
+	tmpBytes := make([]byte, 8)
+
+	buf.Write(n.Header)
+
+	binary.PutUvarint(tmpBytes, n.ID)
+	buf.Write(tmpBytes)
+	buf.Write([]byte{n.Flag})
+
+	byte32 := tmpBytes[:4]
+	binary.LittleEndian.PutUint32(byte32, n.Size)
+	buf.Write(byte32)
+
+	buf.Write(n.Data)
+	buf.Write(n.Footer)
+
+	binary.LittleEndian.PutUint32(byte32, n.Checksum)
+	buf.Write(byte32)
+	buf.Write(n.Padding)
+
+	return buf.Bytes()
+}
+
+func (n *Needle) String() string {
+	bytes, err := json.Marshal(n)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return string(bytes)
+}
+
+func bytesToNeedle(b []byte) (n *Needle, err error) {
+	n = new(Needle)
+	i := 0
+
+	n.Header = b[i : i+4]
+	i += 4
+
+	idByte := b[i : i+8]
+	i += 8
+	id, _ := binary.Uvarint(idByte)
+	n.ID = id
+
+	n.Flag = b[i]
+	i++
+
+	n.Size = binary.LittleEndian.Uint32(b[i : i+4])
+	i += 4
+
+	n.Data = b[i : i+int(n.Size)]
+	i += int(n.Size)
+
+	n.Footer = b[i : i+4]
+	i += 4
+
+	n.Checksum = binary.LittleEndian.Uint32(b[i : i+4])
+	i += 4
+
+	n.Padding = b[i:]
+
+	return
 }

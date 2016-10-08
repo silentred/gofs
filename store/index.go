@@ -7,7 +7,7 @@ type Index struct {
 }
 
 type indexProvider interface {
-	Last() *Index
+	NextID() uint32
 	FindByID(id uint64) *Index
 	Append(*Index) bool
 }
@@ -16,3 +16,10 @@ type indexProvider interface {
 type IndexManager struct {
 	provider *indexProvider
 }
+
+func NewProvider(provider string) *indexProvider {
+	return nil
+}
+
+// ===== File provider =====
+// every superblock has one Index File
