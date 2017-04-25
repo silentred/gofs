@@ -17,7 +17,7 @@ type IndexManager struct {
 	provider *indexProvider
 }
 
-func NewProvider(provider string) *indexProvider {
+func NewProvider(provider string) indexProvider {
 	return nil
 }
 
