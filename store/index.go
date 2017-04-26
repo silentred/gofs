@@ -3,23 +3,22 @@ package store
 import (
 	"bytes"
 	"encoding/binary"
-	"os"
 
 	"github.com/golang/glog"
 )
 
 const (
-	idLen     = 8
-	offsetLen = 4
-	sizeLen   = 4
+	idxIDLen     = 8
+	idxOffsetLen = 4
+	idxSizeLen   = 4
 )
 
 var (
-	indexLen = idLen + offsetLen + sizeLen
+	indexLen = idxIDLen + idxOffsetLen + idxSizeLen
 )
 
 type indexProvider interface {
-	// LoadIndex during recovery from failure
+	// LoadIndex to memery during recovery from failure
 	LoadIndex() error
 	// Get ID of next needle
 	NextID() uint64
@@ -30,9 +29,14 @@ type indexProvider interface {
 }
 
 // IndexManager manages index. Read, write index, give id to needle
+// regernate index file when compacting superblock(cleaning deleted needle)
 type IndexManager struct {
-	store    *Store
+	block    *Superblock
 	provider *indexProvider
+}
+
+func NewIndexManager() {
+
 }
 
 // Index item in index file
@@ -42,8 +46,8 @@ type Index struct {
 	Size   uint32 // data size of needle
 }
 
-func NewIndex(id uint64, offset, size uint32) Index {
-	return Index{
+func NewIndex(id uint64, offset, size uint32) *Index {
+	return &Index{
 		ID:     id,
 		Offset: offset,
 		Size:   size,
@@ -55,7 +59,7 @@ func (i *Index) Bytes() []byte {
 	var n int
 	var err error
 
-	b := make([]byte, indexLen)
+	b := make([]byte, 0, indexLen)
 	buf := bytes.NewBuffer(b)
 	tmpBytes := make([]byte, 8)
 	byte32 := tmpBytes[:4]
@@ -78,7 +82,6 @@ func (i *Index) Bytes() []byte {
 
 func byteToIndex(b []byte) (*Index, error) {
 	var i Index
-	var err error
 	var idx int
 
 	if len(b) != indexLen {
@@ -88,64 +91,10 @@ func byteToIndex(b []byte) (*Index, error) {
 	i.ID, _ = binary.Uvarint(b[:idLen])
 	idx += idLen
 
-	i.Offset = binary.LittleEndian.Uint32(b[idx : idx+offsetLen])
-	idx += offsetLen
+	i.Offset = binary.LittleEndian.Uint32(b[idx : idx+idxOffsetLen])
+	idx += idxOffsetLen
 
 	i.Size = binary.LittleEndian.Uint32(b[idx : idx+sizeLen])
 
 	return &i, nil
-}
-
-// ===== File provider =====
-// every superblock has one Index File
-
-type FileProvider struct {
-	block    *Superblock
-	file     string
-	offset   map[uint64]uint32 // [id]offset in index file
-	reader   *os.File
-	appender *os.File
-}
-
-func NewFileProvider(file string, block *Superblock) (*FileProvider, error) {
-	var err error
-	var p *FileProvider
-	var r, w *os.File
-
-	r, err = os.OpenFile(file, os.O_RDONLY|os.O_CREATE, 0766)
-	if err != nil {
-		return nil, err
-	}
-
-	w, err = os.OpenFile(file, os.O_APPEND|os.O_CREATE, 0755)
-	if err != nil {
-		return nil, err
-	}
-
-	p = &FileProvider{
-		block:    block,
-		file:     file,
-		offset:   make(map[uint64]uint32),
-		reader:   r,
-		appender: w,
-	}
-
-	return p, nil
-}
-
-// Close files
-func (fp *FileProvider) Close() error {
-	var err error
-
-	err = fp.reader.Close()
-	if err != nil {
-		glog.Error(err)
-	}
-
-	err = fp.appender.Close()
-	if err != nil {
-		glog.Error(err)
-	}
-
-	return err
 }
