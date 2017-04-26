@@ -35,13 +35,17 @@ func TestFileProvider_LoadIndex(t *testing.T) {
 	fp.Close()
 
 	fp = getFileProvider(t, file)
+	defer os.Remove(file)
+	defer fp.Close()
+
 	// reload
 	err = fp.LoadIndex()
 	assert.NoError(t, err)
 	assert.Equal(t, uint32(100), fp.itemCnt)
+	assert.Equal(t, 100, len(fp.offset))
 
-	fp.Close()
-	os.Remove(file)
+	index := fp.FindByID(50)
+	assert.Equal(t, uint64(50), index.ID)
 }
 
 func getFileProvider(t *testing.T, file string) *FileProvider {

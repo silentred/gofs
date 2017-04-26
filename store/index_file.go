@@ -97,12 +97,13 @@ func (fp *FileProvider) FindByID(id uint64) *Index {
 	if off, has := fp.offset[id]; has {
 		b := make([]byte, indexLen)
 		n, err := fp.reader.ReadAt(b, int64(off)*int64(indexLen))
-		if err != nil || n < indexLen {
+		glog.Infof("readat offset=%d read=%d", int64(off)*int64(indexLen), n)
+		if err != nil {
 			glog.Error(err)
 			return nil
 		}
-		i, err := byteToIndex(b)
-		if err != nil || n < indexLen {
+		i, err := bytesToIndex(b)
+		if err != nil {
 			glog.Error(err)
 			return nil
 		}
@@ -130,11 +131,11 @@ func (fp *FileProvider) LoadIndex() error {
 	}
 
 	for err != io.EOF {
-		//TODO: read n bytes, n may be less than len(tmpBytes)
+		//TODO: read n bytes, n may be less than len(tmpBytes); use io.ReadFull()
 		n, err = fp.reader.Read(tmpBytes)
 		var times = n / indexLen
 		for i := 0; i < times; i++ {
-			idx, idxErr = byteToIndex(tmpBytes[i*indexLen : (i+1)*indexLen])
+			idx, idxErr = bytesToIndex(tmpBytes[i*indexLen : (i+1)*indexLen])
 			if idxErr == nil {
 				fp.offset[idx.ID] = fp.itemCnt
 				fp.itemCnt++

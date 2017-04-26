@@ -7,7 +7,7 @@ func TestIndexBytes(t *testing.T) {
 	var err error
 	i := NewIndex(1, 1, 1)
 	b := i.Bytes()
-	i, err = byteToIndex(b)
+	i, err = bytesToIndex(b)
 
 	t.Log(len(b))
 	assert.NoError(t, err)

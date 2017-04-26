@@ -80,7 +80,7 @@ func (i *Index) Bytes() []byte {
 	return buf.Bytes()
 }
 
-func byteToIndex(b []byte) (*Index, error) {
+func bytesToIndex(b []byte) (*Index, error) {
 	var i Index
 	var idx int
 
