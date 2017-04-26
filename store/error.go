@@ -7,4 +7,5 @@ import (
 var (
 	errNotAlign          = fmt.Errorf("not align to 8")
 	errInvalidNeddleByte = fmt.Errorf("invalid bytes to needle")
+	errInvalidIndexByte  = fmt.Errorf("invalid bytes to index")
 )

@@ -10,9 +10,6 @@ const (
 )
 
 var (
-	// BasePath of superblock file
-	BasePath = "/tmp"
-
 	blockIDIncrement uint32
 
 	blockMagic = []byte{0x00, 0x09, 0x01, 0x11} // 4 bytes
@@ -53,7 +50,8 @@ func (sb *Superblock) MarkNeedleDeleted() error {
 	return nil
 }
 
-func RecoverIndex() error {
+// MakeIndex reads through superblock file to generate a new index file
+func (sb *Superblock) MakeIndex() error {
 	return nil
 }
 
