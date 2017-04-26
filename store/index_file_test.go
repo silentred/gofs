@@ -25,10 +25,12 @@ func TestFileProvider_Append(t *testing.T) {
 
 func TestFileProvider_LoadIndex(t *testing.T) {
 	var err error
+	var writeRnd = 4000
 	var file = "/tmp/sblock_0001.index"
 	fp := getFileProvider(t, file)
+
 	// append
-	for index := 0; index < 100; index++ {
+	for index := 0; index < writeRnd; index++ {
 		err = fp.Append(&Index{uint64(index), 1, 1})
 		assert.NoError(t, err)
 	}
@@ -41,11 +43,11 @@ func TestFileProvider_LoadIndex(t *testing.T) {
 	// reload
 	err = fp.LoadIndex()
 	assert.NoError(t, err)
-	assert.Equal(t, uint32(100), fp.itemCnt)
-	assert.Equal(t, 100, len(fp.offset))
+	assert.Equal(t, uint32(writeRnd), fp.itemCnt)
+	assert.Equal(t, writeRnd, len(fp.offset))
 
-	index := fp.FindByID(50)
-	assert.Equal(t, uint64(50), index.ID)
+	index := fp.FindByID(uint64(writeRnd / 2))
+	assert.Equal(t, uint64(writeRnd/2), index.ID)
 }
 
 func getFileProvider(t *testing.T, file string) *FileProvider {

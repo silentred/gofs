@@ -94,14 +94,24 @@ func (fp *FileProvider) Append(i *Index) error {
 }
 
 func (fp *FileProvider) FindByID(id uint64) *Index {
+	var n int
+	var err error
+	var baseOffset int64
+
 	if off, has := fp.offset[id]; has {
 		b := make([]byte, indexLen)
-		n, err := fp.reader.ReadAt(b, int64(off)*int64(indexLen))
-		glog.Infof("readat offset=%d read=%d", int64(off)*int64(indexLen), n)
+		baseOffset = int64(off) * int64(indexLen)
+		for n < indexLen && err == nil {
+			var nn int
+			nn, err = fp.reader.ReadAt(b[n:], baseOffset+int64(n))
+			n += nn
+		}
+		glog.Infof("readat offset=%d read=%d err=%v", int64(off)*int64(indexLen), n, err)
 		if err != nil {
 			glog.Error(err)
 			return nil
 		}
+
 		i, err := bytesToIndex(b)
 		if err != nil {
 			glog.Error(err)
@@ -130,9 +140,13 @@ func (fp *FileProvider) LoadIndex() error {
 		return err
 	}
 
-	for err != io.EOF {
-		//TODO: read n bytes, n may be less than len(tmpBytes); use io.ReadFull()
-		n, err = fp.reader.Read(tmpBytes)
+	for err == nil {
+		// reads at least pageSize bytes from reader
+		n, err = io.ReadFull(fp.reader, tmpBytes)
+		if err == io.ErrUnexpectedEOF {
+			glog.Infof("readfull read=%d err=%v, maybe EOF", n, err)
+		}
+
 		var times = n / indexLen
 		for i := 0; i < times; i++ {
 			idx, idxErr = bytesToIndex(tmpBytes[i*indexLen : (i+1)*indexLen])
