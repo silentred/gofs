@@ -3,8 +3,9 @@ Distribted Object Store implemented by golang, inspired by Haystack
 
 ## Roadmap
 - Store
+    - [x] needle
     - [ ] superblock
-    - [ ] needle
+    - [ ] store
     - [ ] index
     - [ ] compact
     - [ ] metrics

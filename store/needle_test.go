@@ -1,9 +1,7 @@
 package store
 
 import (
-	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -17,14 +15,14 @@ func TestGetPadding(t *testing.T) {
 }
 
 func TestNeedle(t *testing.T) {
-	data := []byte{0x96, 0x95}
+	data := []byte("test test")
 	n := NewNeedle(data, 1)
 
 	b := toBytes(t, n)
 	needle, err := bytesToNeedle(b)
+	t.Logf("needle: %s", needle.String())
 	assert.Nil(t, err)
 	assert.Equal(t, n.String(), needle.String())
-
 }
 
 func toBytes(t *testing.T, n *Needle) []byte {
@@ -34,24 +32,4 @@ func toBytes(t *testing.T, n *Needle) []byte {
 	assert.Equal(t, totalSize, len(bytes))
 
 	return bytes
-}
-
-func TestCh(t *testing.T) {
-	ch := make(chan bool, 1)
-	ch2 := make(chan bool, 1)
-
-	go func() {
-		time.Sleep(1 * time.Second)
-		ch <- false
-	}()
-
-	time.Sleep(1 * time.Second)
-	ch2 <- false
-
-	select {
-	case <-ch:
-		fmt.Println(1)
-	case <-ch2:
-		fmt.Println(2)
-	}
 }

@@ -1,5 +1,6 @@
 package store
 
+// Index item in index file
 type Index struct {
 	ID     uint64
 	Offset uint32
@@ -7,12 +8,16 @@ type Index struct {
 }
 
 type indexProvider interface {
+	// LoadIndex during recovery from failure
+	LoadIndex(string) error
+	// Get ID of next needle
 	NextID() uint32
 	FindByID(id uint64) *Index
-	Append(*Index) bool
+	// Persistent the index
+	Append(Index) bool
 }
 
-// IndexManager manages index
+// IndexManager manages index. Read, write index, give id to needle
 type IndexManager struct {
 	provider *indexProvider
 }
