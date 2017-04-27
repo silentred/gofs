@@ -13,4 +13,16 @@ var (
 type Store struct {
 	id       int
 	basePath string
+	blocks   []*Superblock
+	status   StoreStatus
+}
+
+type StoreStatus struct {
+	DiskUsage DiskStatus `json:"disk_usage"`
+	BlockNum  int        `json:"block_cnt"`
+}
+
+type BlockStatus struct {
+	NeedleNum int  `json:"needle_cnt"`
+	Writeable bool `json:"writeable"`
 }
