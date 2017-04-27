@@ -1,5 +1,7 @@
 package store
 
+import "os"
+
 const (
 	O_NOATIME = 0 // no such option
 
@@ -27,9 +29,11 @@ func Fadvise(fd uintptr, off int64, size int64, advise int) error {
 }
 
 func Fdatasync(fd uintptr) error {
-	return nil
+	file := os.NewFile(fd, "test")
+	return file.Sync()
 }
 
 func Syncfilerange(fd uintptr, off int64, n int64, flags int) error {
-	return nil
+	file := os.NewFile(fd, "test")
+	return file.Sync()
 }

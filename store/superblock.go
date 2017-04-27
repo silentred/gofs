@@ -25,16 +25,17 @@ type Superblock struct {
 	writer   *os.File // mark delete
 	appender *os.File // append needle
 
-	writeOffset uint64
+	writeOffset uint32 // cnt of needle
 	writeEnable bool
 	deletedSize uint32 // the total size of deleted needle
 	//index
-	index *IndexManager
+	index indexProvider
 	store *Store
 }
 
 // NewSuperblock creates new a logical volume.
 func NewSuperblock() *Superblock {
+	//
 	return nil
 }
 

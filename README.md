@@ -6,7 +6,7 @@ Distribted Object Store implemented by golang, inspired by Haystack
     - [x] needle
     - [ ] superblock
     - [ ] store
-    - [ ] index
+    - [x] index
     - [ ] compact
     - [ ] metrics
 - Meta

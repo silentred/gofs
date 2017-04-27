@@ -24,19 +24,8 @@ type indexProvider interface {
 	NextID() uint64
 	FindByID(id uint64) *Index
 	// Persistent the index
-	Append(Index) error
+	Append(*Index) error
 	Close() error
-}
-
-// IndexManager manages index. Read, write index, give id to needle
-// regernate index file when compacting superblock(cleaning deleted needle)
-type IndexManager struct {
-	block    *Superblock
-	provider *indexProvider
-}
-
-func NewIndexManager() {
-
 }
 
 // Index item in index file
@@ -80,12 +69,11 @@ func (i *Index) Bytes() []byte {
 	return buf.Bytes()
 }
 
-func bytesToIndex(b []byte) (*Index, error) {
-	var i Index
+func (i *Index) Parse(b []byte) error {
 	var idx int
 
 	if len(b) != indexLen {
-		return nil, errInvalidIndexByte
+		return errInvalidIndexByte
 	}
 
 	i.ID, _ = binary.Uvarint(b[:idLen])
@@ -96,5 +84,5 @@ func bytesToIndex(b []byte) (*Index, error) {
 
 	i.Size = binary.LittleEndian.Uint32(b[idx : idx+sizeLen])
 
-	return &i, nil
+	return nil
 }

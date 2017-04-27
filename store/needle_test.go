@@ -15,11 +15,12 @@ func TestGetPadding(t *testing.T) {
 }
 
 func TestNeedle(t *testing.T) {
+	var needle Needle
 	data := []byte("test test")
 	n := NewNeedle(data, 1)
 
 	b := toBytes(t, n)
-	needle, err := bytesToNeedle(b)
+	err := needle.Parse(b)
 	t.Logf("needle: %s", needle.String())
 	assert.Nil(t, err)
 	assert.Equal(t, n.String(), needle.String())

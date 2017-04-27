@@ -44,15 +44,15 @@ func TestFileProvider_LoadIndex(t *testing.T) {
 	err = fp.LoadIndex()
 	assert.NoError(t, err)
 	assert.Equal(t, uint32(writeRnd), fp.itemCnt)
-	assert.Equal(t, writeRnd, len(fp.offset))
+	assert.Equal(t, writeRnd, len(fp.indexCache))
 
 	index := fp.FindByID(uint64(writeRnd / 2))
 	assert.Equal(t, uint64(writeRnd/2), index.ID)
 }
 
 func getFileProvider(t *testing.T, file string) *FileProvider {
-	var block = Superblock{id: 1}
-	fp, err := NewFileProvider(file, &block)
+	var block = &Superblock{id: 1}
+	fp, err := NewFileProvider(file, block)
 	assert.NoError(t, err)
 	return fp
 }

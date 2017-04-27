@@ -122,20 +122,17 @@ func (n *Needle) String() string {
 	return fmt.Sprintf(f, n.ID, n.Size, n.Flag, n.Checksum, n.GetTotalSize())
 }
 
-func bytesToNeedle(b []byte) (*Needle, error) {
-	var n *Needle
+func (n *Needle) Parse(b []byte) error {
 	var err error
+	var i int
 
 	if len(b)%align != 0 {
-		return nil, errNotAlign
+		return errNotAlign
 	}
 
 	if len(b) < (totalFooterLen + totalHeaderLen) {
-		return nil, errInvalidNeddleByte
+		return errInvalidNeddleByte
 	}
-
-	n = new(Needle)
-	i := 0
 
 	n.Header = b[i : i+4]
 	i += 4
@@ -152,7 +149,7 @@ func bytesToNeedle(b []byte) (*Needle, error) {
 	i += 4
 
 	if len(b)-i < (int(n.Size) + fMagicLen + checksumLen) {
-		return nil, errInvalidNeddleByte
+		return errInvalidNeddleByte
 	}
 
 	n.Data = b[i : i+int(n.Size)]
@@ -166,5 +163,5 @@ func bytesToNeedle(b []byte) (*Needle, error) {
 
 	n.Padding = b[i:]
 
-	return n, err
+	return err
 }
