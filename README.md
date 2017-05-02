@@ -1,6 +1,11 @@
 # Go Filesystem
 Distribted Object Store implemented by golang, inspired by Haystack
 
+![](https://img.shields.io/badge/language-golang-blue.svg)
+![](https://img.shields.io/badge/license-MIT-000000.svg)
+![](https://img.shields.io/github/tag/silentred/gofs.svg)
+
+
 ## Roadmap
 - Store
     - [x] needle
