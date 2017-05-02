@@ -4,6 +4,7 @@ Distribted Object Store implemented by golang, inspired by Haystack
 ![](https://img.shields.io/badge/language-golang-blue.svg)
 ![](https://img.shields.io/badge/license-MIT-000000.svg)
 ![](https://img.shields.io/github/tag/silentred/gofs.svg)
+[![codebeat badge](https://codebeat.co/badges/d8a8e19c-ee50-419d-8bf1-60133dfe446e)](https://codebeat.co/projects/github-com-silentred-gofs-master)
 
 
 ## Roadmap
